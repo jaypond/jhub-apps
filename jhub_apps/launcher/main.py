@@ -8,7 +8,7 @@ from jhub_apps.launcher.panel_app import create_app
 def app(origin_host):
     pn.serve(
         {"/": create_app},
-        port=6000,
+        port=5000,
         allow_websocket_origin=[origin_host],
         show=False,
         prefix="/services/launcher/",

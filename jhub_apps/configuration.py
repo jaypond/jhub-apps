@@ -43,7 +43,7 @@ def install_jhub_apps(c, spawner_to_subclass):
             },
             {
                 "name": "launcher",
-                "url": "http://127.0.0.1:6000",
+                "url": "http://127.0.0.1:5000",
                 "command": [
                     c.JAppsConfig.python_exec,
                     "-m",
