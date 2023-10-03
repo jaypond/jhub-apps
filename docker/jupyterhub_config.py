@@ -65,3 +65,11 @@ c.JupyterHub.bind_url = "http://0.0.0.0:8000"
 c.DockerSpawner.name_template = "{prefix}-{username}-{servername}"
 c = install_jhub_apps(c, spawner_to_subclass=DockerSpawner)
 c.JupyterHub.log_level = 10
+
+#### NB VIEWER ####
+nbviewer_service = {
+    "name": "nbviewer",
+    "url": "http://nbviewer:8080",
+    # "api_token": "someSecretGoesHere"
+}
+c.JupyterHub.services.append(nbviewer_service)

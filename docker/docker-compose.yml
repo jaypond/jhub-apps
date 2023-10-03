@@ -34,7 +34,34 @@ services:
       # JupyterHub will spawn this Notebook image for users
       DOCKER_NOTEBOOK_IMAGE: jupyter/base-notebook:latest
       # Notebook directory inside user image
-      DOCKER_NOTEBOOK_DIR: /home/jovyan/work
+      # DOCKER_NOTEBOOK_DIR: /home/jovyan/work
+      DOCKER_NOTEBOOK_DIR: /home/jovyan
+  nbviewer:
+    # build: ../../../../dtn-forge/image/dtn-nbviewer
+    image: nbviewer-new
+    # image: dtn-cr.jfrog.io/dtn/dsci/dtn-nbviewer:0.0.38
+    depends_on:
+      - hub
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 1024M
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+    ports:
+     - "3404:8080"
+    environment:
+      - LOCALFILES=/data/nbviewer/notebooks
+      # - JUPYTERHUB_API_TOKEN=someSecretGoesHere
+      # - JUPYTERHUB_API_URL=http://configurable-http-proxy:8000/hub/api
+      # - JUPYTERHUB_BASE_URL=http://localhost:3400
+      - JUPYTERHUB_SERVICE_PREFIX=/services/nbviewer/
+    volumes:
+      - $HOME/jdurable/data/nbviewer/notebooks:/data/nbviewer/notebooks
+    networks:
+      - jupyterhub-network
 
 volumes:
   jupyterhub-data:

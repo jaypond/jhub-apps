@@ -24,10 +24,7 @@ class TString:
 
     def replace(self, **kwargs):
         template = string.Template(self.value)
-        keys_to_substitute = set()
-        for k, v in kwargs.items():
-            if f"${k}" in self.value:
-                keys_to_substitute.add(k)
+        keys_to_substitute = {k for k in kwargs if f"${k}" in self.value}
         subs = {k: v for k, v in kwargs.items() if k in keys_to_substitute}
         return template.substitute(subs)
 
@@ -54,6 +51,13 @@ DEFAULT_CMD = Command(
         TString("--authtype=$authtype"),
     ]
 )
+
+GENERIC_ARGS = [
+    "--destport=0",
+    "--ready-check-path=/ready-check",
+    TString("$python_exec"),
+    "{-}m",
+]
 
 COMMANDS = {
     Framework.gradio.value: Command(
@@ -94,7 +98,7 @@ COMMANDS = {
             "run",
             TString("$filepath"),
             "{--}server.port={port}",
-            "{--}server.headless=True",
+            "{--}server.headless=True", 
             TString("{--}browser.serverAddress=$origin_host"),
             "{--}browser.gatherUsageStats=false",
         ],
@@ -139,4 +143,5 @@ COMMANDS = {
             "--ready-check-path=/ready-check",
         ]
     ),
+    Framework.jupyterlab.value: Command(args=[]),
 }

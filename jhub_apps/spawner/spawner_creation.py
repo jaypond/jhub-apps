@@ -1,5 +1,3 @@
-from urllib.parse import urlparse
-
 from jhub_apps.spawner.utils import get_origin_host
 from jhub_apps.spawner.command import (
     EXAMPLES_DIR,
@@ -7,6 +5,7 @@ from jhub_apps.spawner.command import (
     Command,
     EXAMPLES_FILE,
     DEFAULT_CMD,
+    GENERIC_ARGS,
 )
 from jhub_apps.spawner.types import Framework
 
@@ -25,11 +24,25 @@ def subclass_spawner(base_spawner):
                 env = self.get_env()
                 jh_service_prefix = env.get("JUPYTERHUB_SERVICE_PREFIX")
                 framework = self.user_options.get("framework")
-                app_filepath = filepath or EXAMPLES_DIR / EXAMPLES_FILE.get(framework)
+                app_filepath = None
+                if framework not in [
+                    Framework.jupyterlab.value,
+                    Framework.generic.value,
+                ]:
+                    app_filepath = filepath or EXAMPLES_DIR / EXAMPLES_FILE.get(
+                        framework
+                    )
+
                 if not filepath:
                     # Saving the examples file path when not provided
                     self.user_options["filepath"] = str(app_filepath)
-                command: Command = COMMANDS.get(framework)
+
+                custom_cmd = self.user_options.get("custom_command")
+                if framework == Framework.generic.value:
+                    assert custom_cmd
+                    command = Command(args=GENERIC_ARGS + custom_cmd.split())
+                else:
+                    command: Command = COMMANDS.get(framework)
                 command_args = command.get_substituted_args(
                     python_exec=self.config.JAppsConfig.python_exec,
                     filepath=app_filepath,
@@ -61,11 +74,22 @@ def subclass_spawner(base_spawner):
             return env
 
         async def start(self):
-            if self.user_options.get("jhub_app"):
+            framework = self.user_options.get("framework")
+            if (
+                self.user_options.get("jhub_app")
+                and framework != Framework.jupyterlab.value
+            ):
                 self.cmd = DEFAULT_CMD.get_substituted_args(
                     python_exec=self.config.JAppsConfig.python_exec,
                     authtype=self.config.JAppsConfig.apps_auth_type,
                 )
+            if framework == Framework.jupyterlab.value:
+                self.cmd = [
+                    self.config.JAppsConfig.python_exec,
+                    "-m",
+                    "jupyterhub.singleuser",
+                ]
+            print(f"Final Spawner Command: {self.cmd}")
             return await super().start()
 
         def _expand_user_vars(self, string):
